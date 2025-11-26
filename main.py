@@ -8,7 +8,8 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 if __name__ == "__main__":
     for excel in os.listdir(SCRIPT_DIR + '/excels'):
         if not excel.endswith('.xlsx'):
-            print(f'{excel} ignored ! Please convert this file to xlsx format')
+            if excel != '.gitkeep':
+                print(f'{excel} ignored ! Please convert this file to xlsx format')
             continue
         
         excel_name = excel.replace('.xlsx', '')
