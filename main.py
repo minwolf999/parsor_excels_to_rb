@@ -4,11 +4,12 @@ from openpyxl import load_workbook
 from excel_to_rb import ExcelToRb
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SKIPPED_FILES = [".gitkeep"]
 
 if __name__ == "__main__":
     for excel in os.listdir(SCRIPT_DIR + '/excels'):
         if not excel.endswith('.xlsx'):
-            if excel != '.gitkeep':
+            if excel not in SKIPPED_FILES:
                 print(f'{excel} ignored ! Please convert this file to xlsx format')
             continue
         

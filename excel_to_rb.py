@@ -35,7 +35,7 @@ class ExcelToRb:
         content_file += '    def initialize\n'
         content_file += '    end\n'
         content_file += '\n'
-        content_file += self.cells_content(sheet)        
+        content_file += self.cells_content(sheet, sheetname)        
         content_file += '\n'
         content_file += '    def cell(name)\n'
         content_file += '      value = @cells[name]\n'
@@ -46,7 +46,7 @@ class ExcelToRb:
 
         return content_file
 
-    def cells_content(self, sheet: Worksheet):
+    def cells_content(self, sheet: Worksheet, sheetname: str):
         cells = '    def self.cells\n'
         cells += '      @cells ||= {\n'
 
@@ -61,7 +61,7 @@ class ExcelToRb:
                     cell_value = SimpleFormule(self.excel_name, cell_value, True).exec()
                 elif isinstance(cell_value, ArrayFormula):
                     pass
-                    # cell_value = ArrayFormule(cell_value.text, False).exec()
+                    cell_value = ArrayFormule(cell_value.text, False).exec()
                 elif not Helpers.is_number(cell_value):
                     cell_value = json.dumps(cell_value, ensure_ascii=False)
 

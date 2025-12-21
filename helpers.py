@@ -97,3 +97,16 @@ class Helpers:
             args.append(current.strip())
 
         return args
+
+    @classmethod
+    def cell_to_int(self, cell: str):
+        row = 0
+        col = 0
+
+        for c in cell:
+            if c.isdigit():
+                row = row * 10 + int(c)
+            elif c.isalpha():
+                col = col * 26 + (ord(c.upper()) - ord('A') + 1)
+
+        return [col, row]
