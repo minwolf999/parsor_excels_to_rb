@@ -54,7 +54,7 @@ class Helpers:
         raise ValueError(f'Unknown comparator in {condition}')
     
     @classmethod
-    def reference_sheetname(self, reference: str) -> str:
+    def reference_sheetname(self, module: str, reference: str) -> str:
         end_sheet_reference = reference.index('!') - 1
         start_sheet_reference = end_sheet_reference - Helpers.end_single_quote(reference[:end_sheet_reference][::-1], 0)
 
@@ -69,7 +69,7 @@ class Helpers:
             if not char == '$':
                 cell += char
         
-        return f'{sheetname_referenced}.{cell.lower()}()'
+        return f'{module}::{sheetname_referenced}.cell(:{cell.lower()})'
     
     @classmethod
     def is_cell_reference(self, reference) -> bool:

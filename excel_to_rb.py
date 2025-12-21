@@ -30,21 +30,29 @@ class ExcelToRb:
         content_file = '# frozen_string_literal: true\n\n'
         content_file += f'module {self.excel_name}\n'
         content_file += f'  class {clean_sheetname}\n'
-        init = '    def initialize\n'
-        functions = ''
+        content_file += '    def initialize\n'
+        content_file += '    end\n\n'
+        content_file += '    def self.cells\n'
+        content_file += '        @cells ||= {\n'
+
 
         for row in range(1, sheet.max_row + 1):
+            if row > 30:
+                continue
+
             for column in range(1, sheet.max_column + 1):
+                if column > 27:
+                    continue
+
                 cell = sheet.cell(row, column)
 
                 cell_value = cell.value
-                function_args = ''
 
                 if cell_value is None:
-                    init += f"      {get_column_letter(column).lower()}{row} = nil\n"
+                    content_file += f"            {get_column_letter(column).lower()}{row} => nil,\n"
                     continue
                 elif isinstance(cell_value, str) and cell_value.startswith("="):
-                    cell_value = SimpleFormule(cell_value, True).exec()
+                    cell_value = SimpleFormule(self.excel_name, cell_value, True).exec()
                 elif isinstance(cell_value, ArrayFormula):
                     print()
                     print(cell_value.text)
@@ -55,11 +63,16 @@ class ExcelToRb:
                 elif not Helpers.is_number(cell_value):
                     cell_value = json.dumps(cell_value, ensure_ascii=False)
 
-                functions += f'    def {get_column_letter(column).lower()}{row}({function_args})\n'
-                functions += f'      {cell_value}\n'
-                functions += f'    end\n'
+                content_file += f"            {get_column_letter(column).lower()}{row} => {cell_value},\n"
+        
+        content_file += '        }\n'
+        content_file += '    end\n\n'
 
-        init += '    end\n'
-        content_file += f'{init}\n{functions}'
+        content_file += '    def cell(name)\n'
+        content_file += '        value = @cells[name]\n'
+        content_file += '        return value.respond_to?(:call) ? value.call : value\n'
+        content_file += '    end\n'
         content_file += '  end\n'
-        return content_file.rstrip() + '\nend\n'
+        content_file += 'end\n'
+
+        return content_file

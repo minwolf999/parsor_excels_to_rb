@@ -1,7 +1,8 @@
 from helpers import Helpers
 
 class SimpleFormule:
-    def __init__(self, formule: str, is_simple: bool):
+    def __init__(self, module: str, formule: str, is_simple: bool):
+        self.module = module
         self.formule = formule[1:]
         self.is_simple = is_simple
 
@@ -63,7 +64,7 @@ class SimpleFormule:
         elif expression.startswith('OR('):
             return self.excel_and_or(expression[3:-1], True)
         elif '!' in expression:
-            return Helpers.reference_sheetname(expression)
+            return Helpers.reference_sheetname(self.module, expression)
         elif Helpers.is_cell_reference(expression):
             return expression.lower()
         elif '&' in expression:
