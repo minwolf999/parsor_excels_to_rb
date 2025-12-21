@@ -1,8 +1,10 @@
 import re
 import json
+
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.formula import ArrayFormula
+from openpyxl.worksheet.worksheet import Worksheet
 
 from helpers import Helpers
 from simple_formule import SimpleFormule
@@ -31,48 +33,41 @@ class ExcelToRb:
         content_file += f'module {self.excel_name}\n'
         content_file += f'  class {clean_sheetname}\n'
         content_file += '    def initialize\n'
-        content_file += '    end\n\n'
-        content_file += '    def self.cells\n'
-        content_file += '        @cells ||= {\n'
-
-
-        for row in range(1, sheet.max_row + 1):
-            if row > 30:
-                continue
-
-            for column in range(1, sheet.max_column + 1):
-                if column > 27:
-                    continue
-
-                cell = sheet.cell(row, column)
-
-                cell_value = cell.value
-
-                if cell_value is None:
-                    content_file += f"            {get_column_letter(column).lower()}{row} => nil,\n"
-                    continue
-                elif isinstance(cell_value, str) and cell_value.startswith("="):
-                    cell_value = SimpleFormule(self.excel_name, cell_value, True).exec()
-                elif isinstance(cell_value, ArrayFormula):
-                    print()
-                    print(cell_value.text)
-                    print(cell_value)
-                    print()
-
-                    cell_value = ArrayFormule(cell_value.text, False).exec()
-                elif not Helpers.is_number(cell_value):
-                    cell_value = json.dumps(cell_value, ensure_ascii=False)
-
-                content_file += f"            {get_column_letter(column).lower()}{row} => {cell_value},\n"
-        
-        content_file += '        }\n'
-        content_file += '    end\n\n'
-
+        content_file += '    end\n'
+        content_file += '\n'
+        content_file += self.cells_content(sheet)        
+        content_file += '\n'
         content_file += '    def cell(name)\n'
-        content_file += '        value = @cells[name]\n'
-        content_file += '        return value.respond_to?(:call) ? value.call : value\n'
+        content_file += '      value = @cells[name]\n'
+        content_file += '      return value.respond_to?(:call) ? value.call : value\n'
         content_file += '    end\n'
         content_file += '  end\n'
         content_file += 'end\n'
 
         return content_file
+
+    def cells_content(self, sheet: Worksheet):
+        cells = '    def self.cells\n'
+        cells += '      @cells ||= {\n'
+
+        for row in range(1, sheet.max_row + 1):
+            for column in range(1, sheet.max_column + 1):
+                cell = sheet.cell(row, column)
+                cell_value = cell.value
+
+                if cell_value is None:
+                    cell_value = 'nil'
+                elif isinstance(cell_value, str) and cell_value.startswith("="):
+                    cell_value = SimpleFormule(self.excel_name, cell_value, True).exec()
+                elif isinstance(cell_value, ArrayFormula):
+                    pass
+                    # cell_value = ArrayFormule(cell_value.text, False).exec()
+                elif not Helpers.is_number(cell_value):
+                    cell_value = json.dumps(cell_value, ensure_ascii=False)
+
+                cells += f"        {get_column_letter(column).lower()}{row} => {cell_value},\n"
+
+        cells += '      }\n'
+        cells += '    end\n'
+
+        return cells
