@@ -27,6 +27,8 @@ class SimpleFormule:
             return ExcelAndOr(self.module, expression, True).exec()
         elif expression.startswith('SUM'):
             return ExcelSum(self.module, expression).exec()
+        elif expression.startswith('TRUE'):
+            return ExcelTrue(self.module, expression).exec()
         elif expression.startswith('FALSE'):
             return ExcelFalse(self.module, expression).exec()
         elif '!' in expression:
