@@ -49,6 +49,8 @@ class Helpers:
 
                 if comparator == '=':
                     comparator = '=='
+                elif comparator == '<>':
+                    comparator = '!='
 
                 return part1, comparator, part2
 
