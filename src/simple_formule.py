@@ -6,6 +6,7 @@ from src.functions.excel_not import ExcelNot
 from src.functions.excel_and_or import ExcelAndOr
 from src.functions.excel_sum import ExcelSum
 from src.functions.excel_false import ExcelFalse
+from src.functions.excel_true import ExcelTrue
 
 class SimpleFormule:
     def __init__(self, module: str, formule: str):
