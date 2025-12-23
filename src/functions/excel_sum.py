@@ -11,10 +11,10 @@ class ExcelSum:
   def exec(self):
     if self.expression.startswith('SUM('):
       return self.normal_sum(self.expression[3:-1])
-    elif self.expression.startswith('SUM.IF('):
-      return self.sum_if(self.expression[6:-1])
-    elif self.expression.startswith('SUM.IF.ENS('):
-      return self.sum_if_ens(self.expression[10:-1])
+    elif self.expression.startswith('SUMIF('):
+      return self.sum_if(self.expression[5:-1])
+    elif self.expression.startswith('SUMIFS('):
+      return self.sum_ifs(self.expression[6:-1])
 
   def normal_sum(self, expression: str):
     terms = [Helpers.cell_range(current_range) for current_range in expression.split(',')]
@@ -32,7 +32,7 @@ class ExcelSum:
 
     return f'{some_plage}.each_with_index.map {{ |v, i| ({plage}[i] {critere}) ? v : 0}}.sum'
 
-  def sum_if_ens(self, expression: str):
+  def sum_ifs(self, expression: str):
     args = Helpers.split_excel_args(expression)
     some_plage = Helpers.cell_range(args[0])
 
