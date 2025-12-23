@@ -83,7 +83,7 @@ class Helpers:
         current = ''
 
         for c in args_str:
-            if c == ',' and paren_level == 0:
+            if c in [',', ';'] and paren_level == 0:
                 args.append(current.strip())
                 current = ''
             else:
