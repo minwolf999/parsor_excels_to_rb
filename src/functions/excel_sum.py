@@ -1,8 +1,7 @@
-import re
-
 from openpyxl.utils import get_column_letter
 
 from src.helpers import Helpers
+from src.simple_formule import SimpleFormule
 
 class ExcelSum:
   def __init__(self, module: str, expression: str):
@@ -11,29 +10,42 @@ class ExcelSum:
 
   def exec(self):
     if self.expression.startswith('SUM('):
-       return self.normal_sum()
+      return self.normal_sum(self.expression[3:-1])
+    elif self.expression.startswith('SUM.IF('):
+      return self.sum_if(self.expression[6:-1])
+    elif self.expression.startswith('SUM.IF.ENS('):
+      return self.sum_if_ens(self.expression[10:-1])
 
-  def normal_sum(self):
-    terms = []
-    expression = self.expression[3:-1]
-
-    for current_range in expression.split(','):
-        cells = current_range.strip().split(':')
-        
-        end_cell_name = re.sub(r'\W+', '', cells[-1].lower())
-
-        start_reference_sheetname = Helpers.reference_sheetname(self.module, cells[0])
-        end_reference_sheetname = start_reference_sheetname.split('(:')[0] + f"(:{end_cell_name})"
-
-        start_cell = Helpers.cell_to_int(start_reference_sheetname.split('(:')[1][:-1])
-        end_cell = Helpers.cell_to_int(end_reference_sheetname.split('(:')[1][:-1])
-
-        end_sheet_reference = cells[0].index('!') - 1
-        start_sheet_reference = end_sheet_reference - Helpers.end_single_quote(cells[0][:end_sheet_reference][::-1], 0)
-        sheetname_referenced = re.sub(r'\W+', '', cells[0][start_sheet_reference:end_sheet_reference]).title().replace(' ', '')
-
-        for col in range(start_cell[0], end_cell[0] + 1, 1):
-            for row in range(start_cell[1], end_cell[1] + 1, 1):
-                terms.append(f'{self.module}::{sheetname_referenced}.cell(:{get_column_letter(col + 1)}{row})')
-
+  def normal_sum(self, expression: str):
+    terms = [Helpers.cell_range(current_range) for current_range in expression.split(',')]
     return f'{terms}.sum'
+
+  def sum_if(self, expression: str):
+    args = Helpers.split_excel_args(expression)
+    plage = Helpers.cell_range(args[0])
+    critere = SimpleFormule(self.module, args[1]).exec()
+
+    if len(args) == 3:
+      some_plage = Helpers.cell_range(args[2])
+    else:
+      some_plage = plage
+
+    return f'{some_plage}.each_with_index.map {{ |v, i| ({plage}[i] {critere}) ? v : 0}}.sum'
+
+  def sum_if_ens(self, expression: str):
+    args = Helpers.split_excel_args(expression)
+    some_plage = Helpers.cell_range(args[0])
+
+    conditions = []
+
+    for i in range(1, len(args), 2):
+      plage_critere = Helpers.cell_range(args[i])
+      critere = SimpleFormule(self.module, args[i + 1]).exec()
+      conditions.append(f'({plage_critere}[i] {critere})')
+
+    condition_globale = ' && '.join(conditions)
+    return (
+      f'{some_plage}.each_with_index.map {{ |v, i| \n'
+      f'  ({condition_globale}) ? v : 0\n'
+      f'}}.sum\n'
+    )
