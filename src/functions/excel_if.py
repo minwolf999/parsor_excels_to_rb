@@ -8,8 +8,6 @@ class ExcelIf:
 
   def exec(self):
     args = Helpers.split_excel_args(self.expression)
-    if len(args) < 2:
-        raise ValueError(f'A excel if statement need at least 2 section a condition, a value if contion is true')
 
     condition = SimpleFormule(self.module, args[0]).exec()
     if_content = SimpleFormule(self.module, args[1]).exec()

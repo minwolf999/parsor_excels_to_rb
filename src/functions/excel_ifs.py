@@ -23,6 +23,8 @@ class ExcelIfs:
       res += f'{operator} {condition}\n'
       res += f'  {content}\n'
 
+    res += 'else\n'
+    res += '  nil\n'
     res += 'end\n'
 
     return res
